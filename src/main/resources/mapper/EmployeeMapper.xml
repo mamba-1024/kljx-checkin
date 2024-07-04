@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hzjy.hzjycheckIn.mapper.EmployeeMapper">
+
+
+
+    <select id="selectLastDayCount" resultType="map">
+        SELECT
+            COUNT(CASE WHEN enable_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN 1 END) AS yesterday_enabled_count,
+            COUNT(CASE WHEN disable_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN 1 END) AS yesterday_disabled_count,
+            COUNT(CASE WHEN DATE(enable_date) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN 1 END) AS yesterday_new_count
+        FROM
+            employee;
+    </select>
+
+    <select id="queryLevelCount" resultType="map">
+        SELECT
+            CONCAT('LV',
+                   CASE level
+                       WHEN 0 THEN '0'
+                       WHEN 1 THEN '1'
+                       WHEN 2 THEN '2'
+                       WHEN 3 THEN '3'
+                       ELSE CAST(level AS CHAR)
+                       END
+                ) AS level_display,
+            COUNT(*) AS count
+        FROM
+            employee
+        GROUP BY
+            level_display;
+
+    </select>
+
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hzjy.hzjycheckIn.mapper.EmployeeAttendanceMapper">
+
+    <resultMap id="lastDayWorkCountMap" type="java.util.Map">
+        <id property="key" column="key" />
+        <result property="value" column="value" />
+    </resultMap>
+
+    <select id="selectLastDayWorkCount" resultMap="lastDayWorkCountMap">
+        SELECT SUM(ea.common_punch_duration) AS totalCommon, SUM(ea.over_punch_duration) as totalOver
+        FROM employee_attendance ea
+        WHERE ea.punch_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+
+    </select>
+
+</mapper>

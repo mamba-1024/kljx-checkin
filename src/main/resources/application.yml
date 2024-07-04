@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+bank:
+  verify:
+    url:
+    appKey:
+    appSecret:
+    appCode:
+
+mybatis:
+  mapper-locations: classpath:mapper/*:xml
+mybatis-plus:
+  mapper-locations: classpath:mapper/*:xml
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
