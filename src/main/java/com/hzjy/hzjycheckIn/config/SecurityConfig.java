@@ -35,7 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter  {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
-                .withUser("hajy")
+                .withUser("hzjy")
                 .password("{noop}123456") // 使用 "{noop}" 前缀表示密码以明文形式存储
                 .roles("USER");
     }
@@ -43,6 +43,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter  {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
+                .cors()  // 启用CORS支持，使用WebMvcConfig中的CORS配置
+                .and()
                 .authorizeRequests()
                 .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs", "/webjars/**").authenticated()
                 .anyRequest().permitAll()

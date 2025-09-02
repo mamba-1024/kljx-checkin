@@ -29,7 +29,7 @@ public class HzjyConfig implements Serializable {
     private Integer id;
 
     /**
-     * 员工姓名，字符串类型，不能为空
+     * 主图URL地址
      */
     private String mainUrl;
 

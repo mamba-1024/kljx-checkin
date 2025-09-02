@@ -1,2 +1,67 @@
+# IDE配置
 .idea
-hzjy-checkIn.iml
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# 编译输出
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# === 敏感配置文件（重要！） ===
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# 包含敏感信息的配置文件
+config/application-local.yml
+config/application-secret.yml
+src/main/resources/application-local.yml
+src/main/resources/application-secret.yml
+# 本地配置文件目录
+config/
+
+# SSH密钥文件
+*.pem
+*.key
+id_rsa*
+*.ppk
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# Maven临时文件
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar

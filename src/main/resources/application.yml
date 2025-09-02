@@ -1,10 +1,17 @@
 spring:
   profiles:
-    active: dev
+    active: dev,local
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
 
 bank:
   verify:

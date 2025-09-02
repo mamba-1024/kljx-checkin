@@ -1,5 +1,6 @@
 package com.hzjy.hzjycheckIn.controller.web;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hzjy.hzjycheckIn.common.Result;
 import com.hzjy.hzjycheckIn.dto.IndexInfoDTO;
@@ -9,8 +10,8 @@ import com.hzjy.hzjycheckIn.entity.Product;
 import com.hzjy.hzjycheckIn.service.EntActionService;
 import com.hzjy.hzjycheckIn.service.HzjyConfigService;
 import com.hzjy.hzjycheckIn.service.ProductService;
+import com.hzjy.hzjycheckIn.util.FileUrlUtil;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,28 +36,31 @@ public class IndexController {
     @Autowired
     private HzjyConfigService hzjyConfigService;
 
+    @Autowired
+    private FileUrlUtil fileUrlUtil;
+
     @ApiOperation("首页信息")
     @GetMapping("/info")
     public Result<IndexInfoDTO> info() {
         IndexInfoDTO indexInfoDTO = new IndexInfoDTO();
         List<String> mailUrls = new ArrayList<>();
         HzjyConfig byId = hzjyConfigService.getById(1);
-        if (Objects.nonNull(byId) && StringUtils.isNotEmpty(byId.getMainUrl())) {
+        if (Objects.nonNull(byId) && StrUtil.isNotEmpty(byId.getMainUrl())) {
             String mainUrl = byId.getMainUrl();
             String filenames = mainUrl.substring(1, mainUrl.length() - 1);
 // 使用逗号分割字符串
             String[] filenameArray = filenames.split(", ");
             for (String urls : filenameArray) {
-                mailUrls.add("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + urls);
+                mailUrls.add(fileUrlUtil.getFileUrl(urls));
             }
         }
         indexInfoDTO.setMainUrls(mailUrls);
-        indexInfoDTO.setMainUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/index/mainurl1.jpg");
+        indexInfoDTO.setMainUrl(fileUrlUtil.getFileUrl("index/mainurl1.jpg"));
         QueryWrapper<Product> productQueryWrapper = new QueryWrapper<>();
         productQueryWrapper.eq("show_index", Boolean.TRUE);
         List<Product> products = productService.list(productQueryWrapper);
         for (Product product : products) {
-            product.setProductMainUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + product.getProductMainUrl());
+            product.setProductMainUrl(fileUrlUtil.getFileUrl(product.getProductMainUrl()));
         }
         indexInfoDTO.setProducts(products);
         return Result.success(indexInfoDTO);
@@ -68,7 +72,7 @@ public class IndexController {
     public Result<List<Product>> product() {
         List<Product> products = productService.list();
         for (Product product : products) {
-            product.setProductMainUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + product.getProductMainUrl());
+            product.setProductMainUrl(fileUrlUtil.getFileUrl(product.getProductMainUrl()));
         }
         return Result.success(products);
     }
@@ -78,7 +82,7 @@ public class IndexController {
     public Result<Product> getProductDetail(@PathVariable Long id) {
         Product product = productService.getById(id);
         if (Objects.nonNull(product)) {
-            product.setProductMainUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + product.getProductMainUrl());
+            product.setProductMainUrl(fileUrlUtil.getFileUrl(product.getProductMainUrl()));
         }
         return Result.success(product);
     }
@@ -88,7 +92,7 @@ public class IndexController {
     public Result<List<EntAction>> action() {
         List<EntAction> products = entActionService.list();
         for (EntAction product : products) {
-            product.setActionMainUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + product.getActionMainUrl());
+            product.setActionMainUrl(fileUrlUtil.getFileUrl(product.getActionMainUrl()));
         }
         return Result.success(products);
     }
@@ -99,7 +103,7 @@ public class IndexController {
     public Result<EntAction> getEntActionDetail(@PathVariable Long id) {
         EntAction product = entActionService.getById(id);
         if (Objects.nonNull(product)) {
-            product.setActionMainUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + product.getActionMainUrl());
+            product.setActionMainUrl(fileUrlUtil.getFileUrl(product.getActionMainUrl()));
         }
         return Result.success(product);
     }

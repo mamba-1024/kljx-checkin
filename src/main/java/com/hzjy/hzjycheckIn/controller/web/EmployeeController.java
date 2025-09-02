@@ -93,48 +93,44 @@ public class EmployeeController {
         if (o < 1) {
             return Result.fail("当日实名认证次数已用完，请明日再试");
         }
-        //调用银行四要素验证接口 TODO 接口做幂等以及限流措施
-        String verify = bankVerifyUtil.verify(verifiedInfo.getBankCard(), verifiedInfo.getIdCard(), verifiedInfo.getBankReservePhone(), verifiedInfo.getUserName());
-
-        JSONObject jsonObject = JSONObject.parseObject(verify);
-        Integer code = jsonObject.getInteger("code");
-        if (code != 200) {
-            return Result.fail(jsonObject.getString("msg"));
+        // 暂时跳过银行四要素验证接口 TODO 银行验证接口暂时不可用，后续恢复
+        // String verify = bankVerifyUtil.verify(verifiedInfo.getBankCard(), verifiedInfo.getIdCard(), verifiedInfo.getBankReservePhone(), verifiedInfo.getUserName());
+        // JSONObject jsonObject = JSONObject.parseObject(verify);
+        // Integer code = jsonObject.getInteger("code");
+        // if (code != 200) {
+        //     return Result.fail(jsonObject.getString("msg"));
+        // }
+        // JSONObject data = jsonObject.getJSONObject("data");
+        // String result = data.getString("result");
+        // if ("0".equals(result)) {
+        
+        // 暂时直接通过验证，跳过银行验证步骤
+        QueryWrapper<EmployeeDetails> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("employee_id", employee.getId());
+        EmployeeDetails dbEmployeeDetails = detailsService.getOne(queryWrapper);
+        //新增detail数据
+        EmployeeDetails employeeDetails = new EmployeeDetails();
+        employeeDetails.setBankReservePhone(verifiedInfo.getBankReservePhone());
+        employeeDetails.setEmployeeId(employee.getId());
+        employeeDetails.setBankCard(verifiedInfo.getBankCard());
+        employeeDetails.setIdCard(verifiedInfo.getIdCard());
+        employeeDetails.setName(verifiedInfo.getUserName());
+        employeeDetails.setIdCardFrontUrl(verifiedInfo.getFrontIdCardUrl());
+        employeeDetails.setIdCardBackendUrl(verifiedInfo.getBackendIdCardUrl());
+        employeeDetails.setBankBranch("招商银行宜兴分行"); // 统一设置银行名称
+        if (Objects.nonNull(dbEmployeeDetails)) {
+            employeeDetails.setId(dbEmployeeDetails.getId());
         }
-        JSONObject data = jsonObject.getJSONObject("data");
-        String result = data.getString("result");
-        if ("0".equals(result)) {
-            QueryWrapper<EmployeeDetails> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("employee_id", employee.getId());
-            EmployeeDetails dbEmployeeDetails = detailsService.getOne(queryWrapper);
-            //新增detail数据
-            EmployeeDetails employeeDetails = new EmployeeDetails();
-            employeeDetails.setBankReservePhone(verifiedInfo.getBankReservePhone());
-            employeeDetails.setEmployeeId(employee.getId());
-            employeeDetails.setBankCard(verifiedInfo.getBankCard());
-            employeeDetails.setIdCard(verifiedInfo.getIdCard());
-            employeeDetails.setName(verifiedInfo.getUserName());
-            employeeDetails.setIdCardFrontUrl(verifiedInfo.getFrontIdCardUrl());
-            employeeDetails.setIdCardBackendUrl(verifiedInfo.getBackendIdCardUrl());
-            if (Objects.nonNull(dbEmployeeDetails)) {
-                employeeDetails.setId(dbEmployeeDetails.getId());
-            }
-            detailsService.saveOrUpdate(employeeDetails);
+        detailsService.saveOrUpdate(employeeDetails);
 
-            employee.setIsAuthenticated(Boolean.TRUE);
-            employee.setAuditStatus(AuditStatus.WAIT_AUDIT);
-            employee.setName(verifiedInfo.getUserName());
-            employee.setNickname(verifiedInfo.getUserName());
-            employee.setRejectReason(null);
+        employee.setIsAuthenticated(Boolean.TRUE);
+        employee.setAuditStatus(AuditStatus.WAIT_AUDIT);
+        employee.setName(verifiedInfo.getUserName());
+        employee.setNickname(verifiedInfo.getUserName());
+        employee.setRejectReason(null);
 
-            employeeService.updateById(employee);
-            return Result.success(Boolean.TRUE);
-        } else {
-            cacheManager.put(key, o - 1);
-        }
-
-        //更新详情
-        return Result.fail("实名认证失败原因：" + data.getString("msg") + "，还可以尝试" + (o - 1) + "次");
+        employeeService.updateById(employee);
+        return Result.success(Boolean.TRUE);
 
     }
 

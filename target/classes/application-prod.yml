@@ -1,21 +1,27 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url:
-    username:
-    password:
+    url: jdbc:mysql://localhost:3306/jingyu  # 改为本地数据库连接
+    # 敏感信息已移至 config/application-local.yml
 server:
   port: 8088
 logging:
   level:
     root: info
-## 微信小程序
-wx:
-  appSecret:
-  appId:
-##阿里云配置
-oss:
-  endpoint:
-  accessKeyId:
-  accessKeySecret:
-  bucketName:
+## 微信小程序配置
+# 敏感信息已移至 config/application-local.yml
+
+## 文件存储到服务器上
+local:
+  file:
+    upload:
+      path: /var/hzjy_upload
+    access:
+      url: https://hzjy.asia/files
+
+##阿里云配置（已弃用，改用本地存储）
+#oss:
+#  endpoint:
+#  accessKeyId:
+#  accessKeySecret:
+#  bucketName:

@@ -28,7 +28,7 @@ public class ExportSetHeaderUtil {
 
             response.setContentType("application/vnd.ms-excel");
             response.setHeader("Content-Disposition", "attachment;filename=" + encodedFilename);
-            response.addHeader("Pargam", "no-cache");
+            response.addHeader("Pragma", "no-cache");
             response.addHeader("Cache-Control", "no-cache");
         } catch (Exception ex) {
             ex.printStackTrace();

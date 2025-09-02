@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.hzjy.hzjycheckIn.common.Result;
 import com.hzjy.hzjycheckIn.config.CacheMap;
 import com.hzjy.hzjycheckIn.config.WechatUtil;
+import com.hzjy.hzjycheckIn.dto.EmployeeRegisterDTO;
 import com.hzjy.hzjycheckIn.dto.WechatLoginDTO;
 import com.hzjy.hzjycheckIn.dto.WechatResultByCode;
 import com.hzjy.hzjycheckIn.entity.Employee;
 import com.hzjy.hzjycheckIn.service.EmployeeService;
 import com.hzjy.hzjycheckIn.util.JwtUtils;
+import com.hzjy.hzjycheckIn.util.PasswordUtil;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +29,15 @@ import java.nio.charset.StandardCharsets;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Map;
 import java.util.Objects;
+import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/wechat")
 public class WeChatController {
+
+    private static final Logger log = LoggerFactory.getLogger(WeChatController.class);
 
     @Autowired
     private EmployeeService employeeService;
@@ -79,6 +86,7 @@ public class WeChatController {
         String token = JwtUtils.generateToken(RandomUtil.randomString(12));
         if (Objects.isNull(employeeByPhone)) {
             employeeByPhone = new Employee();
+            employeeByPhone.setName("员工" + phone.substring(7)); // 使用手机号后4位作为默认姓名
             employeeByPhone.setOpenId(wechatResultByCode.getOpenid());
             employeeByPhone.setPhone(phone);
             employeeByPhone.setIsAuthenticated(Boolean.FALSE);
@@ -141,6 +149,90 @@ public class WeChatController {
         // 拿到手机号码
         String phone = object.getString("phoneNumber");
         return phone;
+    }
+
+    @ApiOperation("员工注册（通过手机号和密码）")
+    @PostMapping("/register")
+    public Result<String> register(@Valid @RequestBody EmployeeRegisterDTO registerDTO) {
+        try {
+            log.info("员工注册请求: 手机号={}", registerDTO.getPhone());
+
+            // 验证密码一致性
+            if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
+                return Result.fail("两次输入的密码不一致");
+            }
+
+            // 检查密码强度
+//            int passwordStrength = PasswordUtil.checkPasswordStrength(registerDTO.getPassword());
+//            if (passwordStrength == 0) {
+//                return Result.fail("密码强度太弱，请设置更复杂的密码");
+//            }
+
+            // 根据手机号查询员工
+            Employee employee = employeeService.getEmployeeByPhone(registerDTO.getPhone());
+            if (employee == null) {
+                // 如果员工不存在，创建新员工
+                employee = new Employee();
+                employee.setName("员工" + registerDTO.getPhone().substring(7)); // 使用手机号后4位作为默认姓名
+                employee.setPhone(registerDTO.getPhone());
+                employee.setIsAuthenticated(Boolean.FALSE);
+                employee.setPoints(0);
+                employee.setCurrentMonthTime(BigDecimal.ZERO);
+                employee.setLeftWorkTime(BigDecimal.ZERO);
+                employee.setLevel(0);
+                employee.setStatus(Boolean.TRUE);
+                employee.setOnBoard(Boolean.TRUE);
+                employee.setAuditStatus("WAIT_AUDIT");
+                
+                // 生成盐值和加密密码
+                String salt = PasswordUtil.generateSalt();
+                String encryptedPassword = PasswordUtil.encryptPassword(registerDTO.getPassword(), salt);
+                employee.setPassword(encryptedPassword);
+                employee.setSalt(salt);
+
+                // 保存新员工
+                boolean saveSuccess = employeeService.save(employee);
+                if (!saveSuccess) {
+                    log.error("员工注册失败: 保存新员工失败, 手机号={}", registerDTO.getPhone());
+                    return Result.fail("注册失败，请稍后重试");
+                }
+                
+                log.info("员工注册成功: 创建新员工, 员工ID={}, 手机号={}", employee.getId(), registerDTO.getPhone());
+            } else {
+                // 如果员工已存在，检查是否已经设置过密码
+                if (employee.getPassword() != null && !employee.getPassword().isEmpty()) {
+                    return Result.fail("该手机号已注册，请直接登录");
+                }
+
+                // 生成盐值和加密密码
+                String salt = PasswordUtil.generateSalt();
+                String encryptedPassword = PasswordUtil.encryptPassword(registerDTO.getPassword(), salt);
+
+                // 更新员工密码信息
+                Employee updateEmployee = new Employee();
+                updateEmployee.setId(employee.getId());
+                updateEmployee.setPassword(encryptedPassword);
+                updateEmployee.setSalt(salt);
+
+                boolean updateSuccess = employeeService.updateById(updateEmployee);
+                if (!updateSuccess) {
+                    log.error("员工注册失败: 更新密码失败, 员工ID={}", employee.getId());
+                    return Result.fail("注册失败，请稍后重试");
+                }
+                
+                log.info("员工注册成功: 更新密码, 员工ID={}, 手机号={}", employee.getId(), registerDTO.getPhone());
+            }
+
+            // 生成token并缓存员工信息
+            String token = JwtUtils.generateToken(RandomUtil.randomString(12));
+            CacheMap.employeeMap.put(token, employee);
+            
+            return Result.success(token);
+
+        } catch (Exception e) {
+            log.error("员工注册异常: 手机号={}, 错误信息={}", registerDTO.getPhone(), e.getMessage(), e);
+            return Result.fail("注册失败，请稍后重试");
+        }
     }
 
 }

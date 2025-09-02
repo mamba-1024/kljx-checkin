@@ -98,8 +98,9 @@ public class BackendAttendanceController {
         //excel标题
         String[] title = {"时间", "姓名", "员工状态", "普通打卡上班打卡时间", "普通打卡下班打卡时间", "加班打卡上班打卡时间", "加班打卡下班打卡时间", "普通打卡上班时长", "加班打卡上班时长"};
 
-        //excel文件名
-        String fileName = "员工考勤明细" + System.currentTimeMillis() + ".xls";
+        //excel文件名 - 优化文件名称格式
+        String currentTime = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String fileName = "员工考勤明细_" + currentTime + ".xls";
 
         //sheet名
         String sheetName = "员工考勤明细";
@@ -145,7 +146,8 @@ public class BackendAttendanceController {
     @ApiOperation("导出考勤月报")
     public void exportMonth(@RequestBody MonthExportDTO monthExportDTO, HttpServletResponse response) {
         String[] title = {"时间", "姓名", "员工状态", "普通班次打卡总时长(小时)", "加班班次打卡总时长(小时)", "打卡总时长(小时)"};
-        String fileName = "员工考勤月报" + System.currentTimeMillis() + ".xls";
+        String currentTime = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String fileName = "员工考勤月报_" + currentTime + ".xls";
         //sheet名
         String sheetName = "员工考勤明细";
         List<EmployeeMonthTotalTO> list = employeeService.queryMonth(monthExportDTO);

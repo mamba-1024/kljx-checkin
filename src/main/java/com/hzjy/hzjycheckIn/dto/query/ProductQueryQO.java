@@ -7,10 +7,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ProdutQueryQO extends Page {
+public class ProductQueryQO extends Page {
 
-    @ApiModelProperty("姓名")
+    /**
+     * 产品标题，用于模糊查询
+     */
+    @ApiModelProperty("产品标题")
     private String title;
-
 
 }

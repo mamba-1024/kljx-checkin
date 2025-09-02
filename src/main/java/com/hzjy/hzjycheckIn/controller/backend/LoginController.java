@@ -39,6 +39,8 @@ public class LoginController {
             return Result.fail("密码有误");
         }
         String token = JwtUtils.generateToken(RandomUtil.randomString(12));
+        System.out.print("token: ");
+        System.out.print(token);
         return Result.success(token);
     }
 

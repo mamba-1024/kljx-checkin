@@ -1,7 +1,7 @@
 package com.hzjy.hzjycheckIn.controller.backend;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.aliyun.oss.OSS;
+// OSS已弃用，使用本地文件存储
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,6 +20,7 @@ import com.hzjy.hzjycheckIn.service.EmployeeDetailsService;
 import com.hzjy.hzjycheckIn.service.EmployeePunchMonthService;
 import com.hzjy.hzjycheckIn.service.EmployeeService;
 import com.hzjy.hzjycheckIn.util.ExportSetHeaderUtil;
+import com.hzjy.hzjycheckIn.util.FileUrlUtil;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -52,8 +53,10 @@ public class BackendEmployeeController {
     @Autowired
     private EmployeePunchMonthService punchMonthService;
 
+    // OSS已弃用，使用本地文件存储
+
     @Autowired
-    private OSS ossClient;
+    private FileUrlUtil fileUrlUtil;
 
     @ApiOperation("查看在职员工列表")
     @PostMapping("/listIncumbency")
@@ -120,21 +123,43 @@ public class BackendEmployeeController {
     @ApiOperation("查看在职员工详情")
     @PostMapping("/detail/{id}")
     public Result<EmployeeInfoVO> detail(@PathVariable int id) {
-        EmployeeInfoVO employeeInfoVO = new EmployeeInfoVO();
+        // EmployeeInfoVO employeeInfoVO = new EmployeeInfoVO();
         Employee employee = employeeService.getById(id);
         if (Objects.isNull(employee)) {
             return Result.fail("员工不存在");
         }
-        BeanUtils.copyProperties(employee, employeeInfoVO);
+        // BeanUtils.copyProperties(employee, employeeInfoVO);
+        // 手动创建EmployeeInfoVO并复制数据，避免BeanUtils.copyProperties的问题
+        EmployeeInfoVO employeeInfoVO = new EmployeeInfoVO();
+        employeeInfoVO.setId(employee.getId());
+        employeeInfoVO.setName(employee.getName());
+        employeeInfoVO.setAvatar(employee.getAvatar());
+        employeeInfoVO.setStatus(employee.getStatus());
+        employeeInfoVO.setOnBoard(employee.getOnBoard());
+        employeeInfoVO.setIsAuthenticated(employee.getIsAuthenticated());
+        employeeInfoVO.setLevel(employee.getLevel());
+        employeeInfoVO.setPhone(employee.getPhone());
+        employeeInfoVO.setNickname(employee.getNickname());
+        employeeInfoVO.setCreateTime(employee.getCreateTime());
+        employeeInfoVO.setPoints(employee.getPoints());
+        employeeInfoVO.setTotalWorkTime(employee.getTotalWorkTime());
+        employeeInfoVO.setCurrentMonthTime(employee.getCurrentMonthTime());
+        employeeInfoVO.setOnboardingDate(employee.getOnboardingDate());
+        employeeInfoVO.setEnableDate(employee.getEnableDate());
+        employeeInfoVO.setDisableDate(employee.getDisableDate());
+        employeeInfoVO.setResignDate(employee.getResignDate());
+        employeeInfoVO.setAuditStatus(employee.getAuditStatus());
+
+        // 查询员工详细信息
         QueryWrapper<EmployeeDetails> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("employee_id", employee.getId());
         EmployeeDetails one = employeeDetailsService.getOne(queryWrapper);
         if (Objects.nonNull(one)) {
             if (StringUtils.isNotEmpty(one.getIdCardFrontUrl())) {
-                one.setIdCardFrontUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + one.getIdCardFrontUrl());
+                one.setIdCardFrontUrl(fileUrlUtil.getFileUrl(one.getIdCardFrontUrl()));
             }
             if (StringUtils.isNotEmpty(one.getIdCardBackendUrl())) {
-                one.setIdCardBackendUrl("https://hzjysb.oss-cn-hangzhou.aliyuncs.com/" + one.getIdCardBackendUrl());
+                one.setIdCardBackendUrl(fileUrlUtil.getFileUrl(one.getIdCardBackendUrl()));
             }
             employeeInfoVO.setEmployeeDetails(one);
         }

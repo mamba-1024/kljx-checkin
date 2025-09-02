@@ -22,6 +22,14 @@ public class Result<T> {
         return new Result<>(200, "请求成功", data);
     }
 
+    public static <T> Result<T> success(String message, T data) {
+        return new Result<>(200, message, data);
+    }
+
+    public static <T> Result<T> success() {
+        return new Result<>(200, "请求成功", null);
+    }
+
     public static <T> Result<T> fail(int code, String message) {
         return new Result<>(code, message, null);
     }

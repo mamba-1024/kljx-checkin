@@ -1,22 +1,45 @@
-
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/jingyu
-    username: root
-    password: 123456
+    url: jdbc:mysql://8.140.247.255:3306/jingyu?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    # 敏感信息已移至 config/application-local.yml
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
 server:
   port: 8088
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 logging:
   level:
     root: info
-## 微信小程序
-wx:
-  appSecret: 1234567892345678
-  appId: wx7eb38d2488c598df
-##阿里云配置
-oss:
-  endpoint: hjhjhjhjhj
-  accessKeyId: hjhjhjhjhj
-  accessKeySecret: hjhjhjhjhj
-  bucketName: hjhjhjhjhj
+## 微信小程序配置
+# 敏感信息已移至 config/application-local.yml
+
+## 远程文件存储配置
+remote:
+  file:
+    ssh:
+      host: 8.140.247.255
+      port: 22
+      username: root
+      # password: YOUR_SSH_PASSWORD  # 使用SSH密钥，不需要密码
+      privateKeyPath: ~/.ssh/hzjy_ecs_key_jsch  # JSch兼容的SSH私钥路径
+    upload:
+      path: /var/hzjy_upload
+    access:
+      url: https://hzjy.asia/files
+
+##阿里云配置（已弃用，改用本地存储）
+#oss:
+#  endpoint: hjhjhjhjhj
+#  accessKeyId: hjhjhjhjhj
+#  accessKeySecret: hjhjhjhjhj
+#  bucketName: hjhjhjhjhj
