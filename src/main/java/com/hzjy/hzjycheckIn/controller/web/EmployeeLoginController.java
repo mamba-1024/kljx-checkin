@@ -6,6 +6,7 @@ import com.hzjy.hzjycheckIn.util.JwtUtils;
 import com.hzjy.hzjycheckIn.common.Result;
 import com.hzjy.hzjycheckIn.config.CacheMap;
 import com.hzjy.hzjycheckIn.dto.EmployeeLoginDTO;
+import com.hzjy.hzjycheckIn.dto.EmployeeLoginByUsernameDTO;
 import com.hzjy.hzjycheckIn.dto.EmployeeLoginResponseDTO;
 import com.hzjy.hzjycheckIn.dto.EmployeeRegisterDTO;
 import com.hzjy.hzjycheckIn.entity.Employee;
@@ -36,6 +37,64 @@ public class EmployeeLoginController {
 
     @Autowired
     private EmployeeService employeeService;
+
+    @ApiOperation("员工用户名密码登录")
+    @PostMapping("/loginByName")
+    public Result<EmployeeLoginResponseDTO> loginByName(@Valid @RequestBody EmployeeLoginByUsernameDTO loginDTO) {
+        try {
+            log.info("员工登录请求: 用户名={}", loginDTO.getUserName());
+            // 根据用户名查询员工
+            Employee employee = employeeService.getEmployeeByUsername(loginDTO.getUserName());
+            if (employee == null) {
+                log.warn("员工登录失败: 用户名不存在, 用户名={}", loginDTO.getUserName());
+                return Result.fail("用户名不存在，请检查后重试");
+            }
+
+            // 检查员工状态
+            if (Boolean.FALSE.equals(employee.getStatus())) {
+                log.warn("员工登录失败: 账号已停用, 员工ID={}", employee.getId());
+                return Result.fail("您的账号已停用，请联系管理员");
+            }
+
+            if (Boolean.FALSE.equals(employee.getOnBoard())) {
+                log.warn("员工登录失败: 已离职, 员工ID={}", employee.getId());
+                return Result.fail("您已离职，无法登录系统");
+            }
+
+            // 验证密码
+            if (!validatePassword(loginDTO.getPassword(), employee.getPassword(), employee.getSalt())) {
+                log.warn("员工登录失败: 密码错误, 员工ID={}", employee.getId());
+                return Result.fail("密码错误，请检查后重试");
+            }
+
+            // 生成JWT token
+            String token = JwtUtils.generateToken(String.valueOf(employee.getId()));
+            
+            // 将员工信息存入缓存
+            CacheMap.employeeMap.put(token, employee);
+
+            // 构建响应数据
+            EmployeeLoginResponseDTO response = new EmployeeLoginResponseDTO();
+            response.setToken(token);
+            response.setEmployeeId(employee.getId());
+            response.setName(employee.getName());
+            response.setNickname(employee.getNickname());
+            response.setAvatar(employee.getAvatar());
+            response.setPhone(maskPhone(employee.getPhone()));
+            response.setLevel(employee.getLevel());
+            response.setIsAuthenticated(employee.getIsAuthenticated());
+            response.setAuditStatus(employee.getAuditStatus());
+            response.setStatus(employee.getStatus());
+            response.setOnBoard(employee.getOnBoard());
+
+            log.info("员工登录成功: 员工ID={}, 姓名={}", employee.getId(), employee.getName());
+            return Result.success(response);
+
+        } catch (Exception e) {
+            log.error("员工登录异常: 用户名={}, 错误信息={}", loginDTO.getUserName(), e.getMessage(), e);
+            return Result.fail("登录失败，请稍后重试");
+        }
+    }
 
     @ApiOperation("员工手机号密码登录")
     @PostMapping("/login")

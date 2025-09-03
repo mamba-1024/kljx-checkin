@@ -56,8 +56,15 @@ public class EmployeeController {
         Employee dbEmployee = employeeService.getById(employee.getId());
         //查询等级信息等等
         EmployeeInfoDTO employeeInfoDTO = new EmployeeInfoDTO();
+        employeeInfoDTO.setUserName(dbEmployee.getName());
         employeeInfoDTO.setNickname(dbEmployee.getNickname());
-        employeeInfoDTO.setPhoneNumber(dbEmployee.getPhone().replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2"));
+        // phone 兼容 null 或非 11 位
+        String phone = dbEmployee.getPhone();
+        String phoneMasked = phone;
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(phone) && phone.length() == 11) {
+            phoneMasked = phone.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2");
+        }
+        employeeInfoDTO.setPhoneNumber(phoneMasked);
         employeeInfoDTO.setVerified(dbEmployee.getIsAuthenticated());
         employeeInfoDTO.setLevel("" + employee.getLevel());
         employeeInfoDTO.setCheckInTime(employee.getCurrentMonthTime() + "");

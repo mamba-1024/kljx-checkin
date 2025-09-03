@@ -9,6 +9,7 @@ import com.hzjy.hzjycheckIn.common.Result;
 import com.hzjy.hzjycheckIn.config.ExcelUtil;
 import com.hzjy.hzjycheckIn.config.FormatUtils;
 import com.hzjy.hzjycheckIn.dto.AuditRejectDTO;
+import com.hzjy.hzjycheckIn.dto.EmployeePhoneUpdateDTO;
 import com.hzjy.hzjycheckIn.dto.backend.EmployeeInfoVO;
 import com.hzjy.hzjycheckIn.dto.query.EmployeePunchMonthQueryQO;
 import com.hzjy.hzjycheckIn.dto.query.EmployeeQueryQO;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+// 删除方法参数上的 @Valid，改为手动校验，确保返回200
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
@@ -87,6 +89,43 @@ public class BackendEmployeeController {
     public Result<Page<Employee>> listAudit(@RequestBody EmployeeQueryQO employeeQueryQO) {
         employeeQueryQO.setIsAuditList(Boolean.TRUE);
         return Result.success(employeeService.listEmployeeAuditList(employeeQueryQO));
+    }
+
+    @ApiOperation("更新员工信息")
+    @PostMapping("/updateEmployee")
+    public Result<Boolean> updateEmployee(@RequestBody EmployeePhoneUpdateDTO employeeUpdatePhoneDTO) {
+        // 手动参数校验，避免抛出400/500
+        if (employeeUpdatePhoneDTO == null || employeeUpdatePhoneDTO.getId() == null) {
+            return Result.fail("员工ID不能为空");
+        }
+        if (org.apache.commons.lang3.StringUtils.isBlank(employeeUpdatePhoneDTO.getName())) {
+            return Result.fail("员工姓名不能为空");
+        }
+        String phoneInput = employeeUpdatePhoneDTO.getPhone();
+        if (org.apache.commons.lang3.StringUtils.isBlank(phoneInput)) {
+            return Result.fail("手机号不能为空");
+        }
+        // 按大陆号段校验：1开头，第二位3-9，总11位
+        if (!phoneInput.matches("^1[3-9]\\d{9}$")) {
+            return Result.fail("手机号格式不正确");
+        }
+        Employee employee = employeeService.getById(employeeUpdatePhoneDTO.getId());
+        if (Objects.isNull(employee)) {
+            return Result.fail("员工不存在");
+        }
+
+        // 校验新手机号是否已被其他员工占用
+        Employee exists = employeeService.getEmployeeByPhone(phoneInput);
+        if (Objects.nonNull(exists) && !Objects.equals(exists.getId(), employeeUpdatePhoneDTO.getId())) {
+            return Result.fail("该手机号已被占用");
+        }
+
+        Employee update = new Employee();
+        update.setId(employeeUpdatePhoneDTO.getId());
+        update.setPhone(phoneInput);
+        update.setName(employeeUpdatePhoneDTO.getName());
+        boolean ok = employeeService.updateById(update);
+        return ok ? Result.success(Boolean.TRUE) : Result.fail("更新失败，请稍后重试");
     }
 
     @ApiOperation("审核通过")

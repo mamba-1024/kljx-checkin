@@ -14,10 +14,13 @@ import java.time.LocalDateTime;
 @Data
 public class EmployeeInfoDTO {
 
+    @ApiModelProperty(value = "用户名", example = "张三")
+    private String userName;
+
     @ApiModelProperty(value = "头像地址", example = "https://example.com/avatar.jpg")
     private String avatarUrl;
 
-    @ApiModelProperty(value = "昵称", example = "张三")
+    @ApiModelProperty(value = "昵称", example = "小张")
     private String nickname;
 
     @ApiModelProperty(value = "电话号码", example = "13888888888")

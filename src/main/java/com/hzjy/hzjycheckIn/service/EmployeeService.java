@@ -39,6 +39,14 @@ public interface EmployeeService extends IService<Employee> {
     Employee getEmployeeByPhone(String phone);
 
     /**
+     * 根据用户名获取员工信息
+     * 
+     * @param userName 员工用户名
+     * @return 员工信息，如果不存在返回null
+     */
+    Employee getEmployeeByUsername(String userName);
+
+    /**
      * 根据Token获取员工信息
      * 
      * @param token 用户Token

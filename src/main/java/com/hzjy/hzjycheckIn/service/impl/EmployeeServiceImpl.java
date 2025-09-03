@@ -55,6 +55,13 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     }
 
     @Override
+    public Employee getEmployeeByUsername(String userName) {
+        QueryWrapper<Employee> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name", userName);
+        return this.getOne(queryWrapper);
+    }
+
+    @Override
     public Employee getEmployeeByToken(String token) {
         Employee employee = CacheMap.employeeMap.get(token);
         return employee;

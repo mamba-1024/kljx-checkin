@@ -3,6 +3,9 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/jingyu  # 改为本地数据库连接
     # 敏感信息已移至 config/application-local.yml
+    username: program
+    password: Ketong@1024
+
 server:
   port: 8088
 logging:
@@ -10,6 +13,10 @@ logging:
     root: info
 ## 微信小程序配置
 # 敏感信息已移至 config/application-local.yml
+# 微信小程序配置
+wx:
+  appSecret: 7929759750fc2cf7f3b0d78a3330c6bf
+  appId: wx7eb38d2488c598df
 
 ## 文件存储到服务器上
 local:

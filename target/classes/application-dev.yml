@@ -3,13 +3,9 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://8.140.247.255:3306/jingyu?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     # 敏感信息已移至 config/application-local.yml
-  http:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-      force-request: true
-      force-response: true
+#    username: program
+#    password: Ketong@1024
+
 server:
   port: 8088
   servlet:
@@ -22,6 +18,10 @@ logging:
     root: info
 ## 微信小程序配置
 # 敏感信息已移至 config/application-local.yml
+# 微信小程序配置
+#wx:
+#  appSecret: 7929759750fc2cf7f3b0d78a3330c6bf
+#  appId: wx7eb38d2488c598df
 
 ## 远程文件存储配置
 remote:

@@ -6,6 +6,7 @@ import com.hzjy.hzjycheckIn.common.Result;
 import com.hzjy.hzjycheckIn.config.CacheMap;
 import com.hzjy.hzjycheckIn.config.WechatUtil;
 import com.hzjy.hzjycheckIn.dto.EmployeeRegisterDTO;
+import com.hzjy.hzjycheckIn.dto.EmployeeRegisterByUsernameDTO;
 import com.hzjy.hzjycheckIn.dto.WechatLoginDTO;
 import com.hzjy.hzjycheckIn.dto.WechatResultByCode;
 import com.hzjy.hzjycheckIn.entity.Employee;
@@ -231,6 +232,92 @@ public class WeChatController {
 
         } catch (Exception e) {
             log.error("员工注册异常: 手机号={}, 错误信息={}", registerDTO.getPhone(), e.getMessage(), e);
+            return Result.fail("注册失败，请稍后重试");
+        }
+    }
+
+    @ApiOperation("员工注册（通过用户名和密码）")
+    @PostMapping("/registerByName")
+    public Result<String> registerByUsername(@Valid @RequestBody EmployeeRegisterByUsernameDTO registerDTO) {
+        try {
+            log.info("员工注册请求: 用户名={}", registerDTO.getUserName());
+            // 验证密码一致性
+            if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
+                return Result.fail("两次输入的密码不一致");
+            }
+            
+            // 根据用户名查询员工
+            Employee employee = employeeService.getEmployeeByUsername(registerDTO.getUserName());
+            if (employee == null) {
+                // 用户名不存在，创建新员工
+                employee = new Employee();
+                // 设置用户名
+                employee.setName(registerDTO.getUserName());
+                // 设置手机号为空
+                employee.setPhone(null);
+                // 设置默认已经实名认证
+                employee.setIsAuthenticated(Boolean.TRUE); // 默认已经实名认证
+                // 设置积分
+                employee.setPoints(0);
+                // 设置当前月工时
+                employee.setCurrentMonthTime(BigDecimal.ZERO);
+                // 设置剩余工时
+                employee.setLeftWorkTime(BigDecimal.ZERO);
+                // 设置等级
+                employee.setLevel(0);
+                // 设置状态
+                employee.setStatus(Boolean.TRUE);
+                // 设置在职状态
+                employee.setOnBoard(Boolean.TRUE);
+                // 设置审核状态
+                employee.setAuditStatus("WAIT_AUDIT");
+
+                // 生成盐值和加密密码
+                String salt = PasswordUtil.generateSalt();
+                String encryptedPassword = PasswordUtil.encryptPassword(registerDTO.getPassword(), salt);
+                employee.setPassword(encryptedPassword);
+                employee.setSalt(salt);
+
+                // 保存新员工
+                boolean saveSuccess = employeeService.save(employee);
+                if (!saveSuccess) {
+                    log.error("员工注册失败: 保存新员工失败, 用户名={}", registerDTO.getUserName());
+                    return Result.fail("注册失败，请稍后重试");
+                }
+                
+                log.info("员工注册成功: 创建新员工, 员工ID={}, 用户名={}", employee.getId(), registerDTO.getUserName());
+            } else {
+                // 如果员工已存在，检查是否已经设置过密码
+                if (employee.getPassword() != null && !employee.getPassword().isEmpty()) {
+                    return Result.fail("该用户名已注册，请直接登录");
+                }
+
+                // 生成盐值和加密密码
+                String salt = PasswordUtil.generateSalt();
+                String encryptedPassword = PasswordUtil.encryptPassword(registerDTO.getPassword(), salt);
+
+                // 更新员工密码信息
+                Employee updateEmployee = new Employee();
+                updateEmployee.setId(employee.getId());
+                updateEmployee.setPassword(encryptedPassword);
+                updateEmployee.setSalt(salt);
+
+                boolean updateSuccess = employeeService.updateById(updateEmployee);
+                if (!updateSuccess) {
+                    log.error("员工注册失败: 更新密码失败, 员工ID={}", employee.getId());
+                    return Result.fail("注册失败，请稍后重试");
+                }
+                
+                log.info("员工注册成功: 更新密码, 员工ID={}, 用户名={}", employee.getId(), registerDTO.getUserName());
+            }
+
+            // 生成token并缓存员工信息
+            String token = JwtUtils.generateToken(RandomUtil.randomString(12));
+            CacheMap.employeeMap.put(token, employee);
+            
+            return Result.success(token);
+        } catch (Exception e) {
+            log.error("员工注册异常: 用户名={}, 错误信息={}", registerDTO.getUserName(), e.getMessage(), e);
             return Result.fail("注册失败，请稍后重试");
         }
     }

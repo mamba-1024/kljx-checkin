@@ -15,7 +15,7 @@ import javax.validation.constraints.Pattern;
 public class EmployeeRegisterDTO {
 
     @ApiModelProperty(value = "手机号", required = true, example = "13800138000")
-    @NotBlank(message = "手机号不能为空")
+    // @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
 

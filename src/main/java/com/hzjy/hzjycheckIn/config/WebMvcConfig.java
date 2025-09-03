@@ -38,8 +38,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        List<String> excludeBackendSwaggerPath = Arrays.asList("/swagger-ui/**", "/v2/**", "/webjars/**", "/swagger-resources/**", "/swagger-ui.html", "/wechat/**", "/backend/**", "/index/**", "/employee/login/login", "/employee/login/register");
-        List<String> excludeWechatSwaggerPath = Arrays.asList("/swagger-ui/**", "/v2/**", "/webjars/**", "/swagger-resources/**", "/swagger-ui.html", "/wechat/**", "/attendance/**", "/employee/**", "/employeeDetails/**", "/index/**", "/workShift/**", "/backend/login/login", "/backend/attendance/export/daily", "backend/attendance/export/month", "/backend/employee/export", "/employee/login/login", "/employee/login/register");
+        List<String> excludeBackendSwaggerPath = Arrays.asList("/swagger-ui/**", "/v2/**", "/webjars/**",
+                "/swagger-resources/**", "/swagger-ui.html", "/wechat/**", "/backend/**", "/index/**",
+                "/employee/login/login", "/employee/login/register", "/employee/login/loginByName",
+                "/", "/index.html", "/error", "/favicon.ico", "/robots.txt", "/sitemap.xml"
+        );
+        List<String> excludeWechatSwaggerPath = Arrays.asList("/swagger-ui/**", "/v2/**", "/webjars/**",
+                "/swagger-resources/**", "/swagger-ui.html", "/wechat/**", "/attendance/**", "/employee/**",
+                "/employeeDetails/**", "/index/**", "/workShift/**", "/backend/login/login",
+                "/backend/attendance/export/daily", "backend/attendance/export/month", "/backend/employee/export",
+                "/employee/login/login", "/employee/login/register", "/employee/login/loginByName",
+                "/", "/index.html", "/error", "/favicon.ico", "/robots.txt", "/sitemap.xml"
+        );
         
         // 添加JWT拦截器，拦截所有请求
         registry.addInterceptor(backendContextInterceptor).addPathPatterns("/**").excludePathPatterns(excludeWechatSwaggerPath);

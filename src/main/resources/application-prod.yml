@@ -3,6 +3,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/jingyu  # 改为本地数据库连接
     # 敏感信息已移至 config/application-local.yml
+
 server:
   port: 8088
 logging:
@@ -10,6 +11,7 @@ logging:
     root: info
 ## 微信小程序配置
 # 敏感信息已移至 config/application-local.yml
+# 微信小程序配置
 
 ## 文件存储到服务器上
 local:
