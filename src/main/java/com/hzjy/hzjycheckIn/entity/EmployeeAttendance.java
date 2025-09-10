@@ -94,6 +94,50 @@ public class EmployeeAttendance implements Serializable {
     private Integer overWorkShiftId;
 
     /**
+     * 上午打卡班次ID
+     * 关联work_shift表的班次ID
+     */
+    private Integer amWorkShiftId;
+
+    /**
+     * 上午上班打卡时间（实际）
+     */
+    private LocalDateTime amStartTime;
+
+    /**
+     * 上午下班打卡时间（实际）
+     */
+    private LocalDateTime amEndTime;
+
+     /**
+     * 上午打卡时长
+     * 员工上午班次的工作时长（小时）
+     */
+    private BigDecimal amPunchDuration;
+
+    /**
+     * 下午打卡班次ID
+     * 关联work_shift表的班次ID
+     */
+    private Integer pmWorkShiftId;
+
+    /**
+     * 下午上班打卡时间（实际）
+     */
+    private LocalDateTime pmStartTime;
+
+    /**
+     * 下午下班打卡时间（实际）
+     */
+    private LocalDateTime pmEndTime;
+
+    /**
+     * 下午打卡时长
+     * 员工下午班次的工作时长（小时）
+     */
+    private BigDecimal pmPunchDuration;
+
+    /**
      * 创建时间
      * 记录创建该考勤记录的时间
      */

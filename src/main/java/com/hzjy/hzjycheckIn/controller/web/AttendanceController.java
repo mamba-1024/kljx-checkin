@@ -127,8 +127,9 @@ public class AttendanceController {
         if (Boolean.FALSE.equals(employee.getOnBoard())) {
             return Result.fail("您已离职");
         }
-        //查询班次信息--缓存
+        //获取打卡班次
         Integer workShiftId = attendanceDTO.getWorkShiftId();
+        // 根据班次ID获取班次信息
         WorkShift workShift = workShiftService.getById(workShiftId);
         if (Objects.isNull(workShift)) {
             return Result.fail("打卡班次不存在");
@@ -142,7 +143,8 @@ public class AttendanceController {
             if (LocalTime.now().isBefore(startLimit)) {
                 return Result.fail("当前班次请于：" + startLimit.format(DateTimeFormatter.ofPattern("HH时mm分")) + "之后打卡");
             }
-            if (LocalTime.now().isAfter(workShift.getEndTime())) {
+            LocalTime shiftEnd = getShiftEndTime(workShift);
+            if (Objects.nonNull(shiftEnd) && LocalTime.now().isAfter(shiftEnd)) {
                 return Result.fail("当前时间已经超过当前班次的下班时间，上班打卡失败");
             }
 
@@ -160,50 +162,113 @@ public class AttendanceController {
             employeeAttendance.setPunchDate(nowDate);
             employeeAttendance.setCreateAt(LocalDateTime.now());
         }
-        //上班打卡
         LocalDateTime commonPunchStart = employeeAttendance.getCommonPunchStart();
         LocalDateTime commonPunchEnd = employeeAttendance.getCommonPunchEnd();
+        LocalDateTime amStartTime = employeeAttendance.getAmStartTime();
+        LocalDateTime amEndTime = employeeAttendance.getAmEndTime();
+        LocalDateTime pmStartTime = employeeAttendance.getPmStartTime();
+        LocalDateTime pmEndTime = employeeAttendance.getPmEndTime();
         LocalDateTime overPunchStart = employeeAttendance.getOverPunchStart();
+        LocalDateTime overPunchEnd = employeeAttendance.getOverPunchEnd();
+        //上班打卡
         if (PunchType.CHECK_IN == punchType) {
             //判断当前班次是不是打过卡了
             if (JudgeWorkShiftUtil.isCommonShift(workShiftId)) {
-                if (Objects.nonNull(commonPunchStart)) {
-                    return Result.fail("对不起，当前班次已经打过卡了");
-                }
-                employeeAttendance.setCommonPunchStart(LocalDateTime.now());
-                employeeAttendance.setCommonWorkShiftId(workShiftId);
-            } else {
-                if (Objects.nonNull(overPunchStart)) {
-                    return Result.fail("对不起，当前班次已经打过卡了");
-                } else {
-                    if (Objects.nonNull(commonPunchStart) && Objects.isNull(commonPunchEnd)) {
-                        return Result.fail("加班打卡，普通打卡下班打没打，不能打加班上班卡，请切换普通班次打下班卡");
+                // 根据班次信息设置amStartTime和pmStartTime
+                // 上午班次
+                if (JudgeWorkShiftUtil.isAmShift(workShiftId)) {
+                    // 上班卡没有打卡
+                    if (Objects.isNull(amStartTime)) {
+                        LocalDateTime amStartTimeNow = LocalDateTime.now();
+                        employeeAttendance.setAmStartTime(amStartTimeNow);
+                        employeeAttendance.setAmWorkShiftId(workShiftId);
+                        // 设置普通打卡开始时间
+                        employeeAttendance.setCommonPunchStart(amStartTimeNow);
+                        employeeAttendance.setCommonWorkShiftId(workShiftId);
+                    } else {
+                        // 上班卡已经打卡
+                        return Result.fail("对不起，当前班次已经打过上班卡了");
                     }
+                } else {
+                    // // 判断上午下班卡是否打过
+                    // if (Objects.isNull(amEndTime)) {
+                    //     return Result.fail("上午下班卡没打，不能打下午上班卡，请切换【上午】班次打下班卡");
+                    // }
+                    // 下午班次上班卡没有打卡
+                    if (Objects.isNull(pmStartTime)) {
+                        employeeAttendance.setPmStartTime(LocalDateTime.now());
+                        employeeAttendance.setPmWorkShiftId(workShiftId);
+                    } else {
+                        // 下午上班卡已经打卡
+                        return Result.fail("对不起，当前班次已经打过上班卡了");
+                    }
+                }
+                // if (Objects.isNull(commonPunchStart) || LocalDateTime.now().isBefore(commonPunchStart)) {
+                //     employeeAttendance.setCommonPunchStart(LocalDateTime.now());
+                // }
+                // employeeAttendance.setCommonWorkShiftId(workShiftId);
+            } else {
+                // 加班班次
+                // 判断下午下班卡是否打过
+                // if (Objects.isNull(pmEndTime)) {
+                //     return Result.fail("【下午】下班卡没打，不能打加班卡，请切换【下午】班次打下班卡");
+                // }
+                if (Objects.nonNull(overPunchStart)) {
+                    return Result.fail("对不起，当前班次已经打过上班卡了");
                 }
                 employeeAttendance.setOverPunchStart(LocalDateTime.now());
                 employeeAttendance.setOverWorkShiftId(workShiftId);
             }
         } else {
+            // 下班打卡
             if (JudgeWorkShiftUtil.isCommonShift(workShiftId)) {
-                if (Objects.nonNull(commonPunchEnd)) {
-                    return Result.fail("对不起，当前班次已经打过卡了");
+                // 上午班次
+                if (JudgeWorkShiftUtil.isAmShift(workShiftId)) {
+                    if (Objects.isNull(amEndTime)) {
+                        LocalDateTime amEndTimeNow = LocalDateTime.now();
+                        employeeAttendance.setAmEndTime(amEndTimeNow);
+                        employeeAttendance.setAmWorkShiftId(workShiftId);
+
+                         // 计算上午上班时长
+                        Duration amDuration = DurationUtil.getDuration(amStartTime.toLocalTime(), amEndTimeNow.toLocalTime(), workShift);
+                        employeeAttendance.setAmPunchDuration(BigDecimalGetHoursUtil.minutesToHours(amDuration.toMinutes()));
+                        // 上午下班后，普遍班次的工作时长等于上午上班时长
+                        employeeAttendance.setCommonPunchDuration(BigDecimalGetHoursUtil.minutesToHours(amDuration.toMinutes()));
+                    } else {
+                        return Result.fail("对不起，当前班次已经打过下班卡了");
+                    }
+                } else {
+                    // 下午班次
+                    if (Objects.isNull(pmEndTime)) {
+                        LocalDateTime pmEndTimeNow = LocalDateTime.now();
+                        employeeAttendance.setPmEndTime(pmEndTimeNow);
+                        employeeAttendance.setPmWorkShiftId(workShiftId);
+                        // 下午下班打卡 设置普通打卡结束时间
+                        employeeAttendance.setCommonPunchEnd(pmEndTimeNow);
+                        employeeAttendance.setCommonWorkShiftId(workShiftId);
+                        // 计算下午上班时长
+                        Duration pmDuration = DurationUtil.getDuration(pmStartTime.toLocalTime(), pmEndTimeNow.toLocalTime(), workShift);
+                        employeeAttendance.setPmPunchDuration(BigDecimalGetHoursUtil.minutesToHours(pmDuration.toMinutes()));
+                        // commonPunchDuration = amPunchDuration + pmPunchDuration
+                        employeeAttendance.setCommonPunchDuration(employeeAttendance.getAmPunchDuration().add(employeeAttendance.getPmPunchDuration()));
+                        Duration amDuration = DurationUtil.getDuration(amStartTime.toLocalTime(), pmEndTimeNow.toLocalTime(), workShift);
+                        employeeAttendance.setAmPunchDuration(BigDecimalGetHoursUtil.minutesToHours(amDuration.toMinutes()));
+                        employeeAttendance.setCommonPunchDuration(employeeAttendance.getAmPunchDuration().add(employeeAttendance.getPmPunchDuration()));
+                    } else {
+                        return Result.fail("对不起，当前班次已经打过下班卡了");
+                    }
                 }
-                if (Objects.isNull(commonPunchStart)) {
-                    return Result.fail("当前班次上班卡没打，不能打下班卡");
-                }
-                employeeAttendance.setCommonPunchEnd(LocalDateTime.now());
-                Duration duration = DurationUtil.getDuration(commonPunchStart.toLocalTime(), employeeAttendance.getCommonPunchEnd().toLocalTime(), workShift);
-                employeeAttendance.setCommonPunchDuration(BigDecimalGetHoursUtil.minutesToHours(duration.toMinutes()));
             } else {
-                LocalDateTime overPunchEnd = employeeAttendance.getOverPunchEnd();
+                // 加班班次
                 if (Objects.nonNull(overPunchEnd)) {
                     return Result.fail("对不起，当前班次已经打过卡了");
                 }
-                if (Objects.isNull(overPunchStart)) {
-                    return Result.fail("当前班次上班卡没打，不能打下班卡");
-                }
-                employeeAttendance.setOverPunchEnd(LocalDateTime.now());
-                Duration duration = DurationUtil.getDuration(overPunchStart.toLocalTime(), employeeAttendance.getOverPunchEnd().toLocalTime(), workShift);
+                // if (Objects.isNull(overPunchStart)) {
+                //     return Result.fail("当前班次上班卡没打，不能打下班卡");
+                // }
+                LocalDateTime overPunchEndNow = LocalDateTime.now();
+                employeeAttendance.setOverPunchEnd(overPunchEndNow);
+                Duration duration = DurationUtil.getDuration(overPunchStart.toLocalTime(), overPunchEndNow.toLocalTime(), workShift);
                 employeeAttendance.setOverPunchDuration(BigDecimalGetHoursUtil.minutesToHours(duration.toMinutes()));
             }
         }
@@ -228,10 +293,23 @@ public class AttendanceController {
         QueryWrapper<AttendanceRecord> attendanceRecordQueryWrapper = new QueryWrapper<>();
         attendanceRecordQueryWrapper.eq("employee_id", employee.getId());
         attendanceRecordQueryWrapper.between("punch_date", firstDayOfMonth, nextMonthFirstDay);
+        // employee_id 和 punch_date 查询当天打卡情况, 正常情况会查出4条记录，分别是上午上班，上午下班，下午上班，下午下班
         List<AttendanceRecord> attendanceRecords = recordService.list(attendanceRecordQueryWrapper);
         AttendanceSummaryDTO attendanceSummaryDTO = recordService.calculateStatistics(attendanceRecords, workShifts);
         return Result.success(attendanceSummaryDTO);
     }
 
+
+    private LocalTime getShiftEndTime(WorkShift workShift) {
+        LocalTime pmEnd = workShift.getEndTime();
+        if (Objects.nonNull(pmEnd) && !LocalTime.MIDNIGHT.equals(pmEnd)) {
+            return pmEnd;
+        }
+        LocalTime amEnd = workShift.getEndTime();
+        if (Objects.nonNull(amEnd) && !LocalTime.MIDNIGHT.equals(amEnd)) {
+            return amEnd;
+        }
+        return null;
+    }
 
 }

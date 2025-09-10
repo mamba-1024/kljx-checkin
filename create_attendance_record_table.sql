@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS `attendance_record` (
   KEY `idx_employee_id` (`employee_id`),
   KEY `idx_punch_date` (`punch_date`),
   KEY `idx_work_shift_id` (`work_shift_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='打卡记录表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='打卡记录表';

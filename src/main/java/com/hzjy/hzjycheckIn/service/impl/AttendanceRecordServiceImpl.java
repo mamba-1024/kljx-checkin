@@ -14,6 +14,7 @@ import com.hzjy.hzjycheckIn.service.EmployeeAttendanceService;
 import com.hzjy.hzjycheckIn.service.EmployeeService;
 import com.hzjy.hzjycheckIn.util.BigDecimalGetHoursUtil;
 import com.hzjy.hzjycheckIn.util.JudgeWorkShiftUtil;
+import com.hzjy.hzjycheckIn.util.DurationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -145,7 +146,7 @@ public class AttendanceRecordServiceImpl extends ServiceImpl<AttendanceRecordMap
         LocalTime startDateTime = prevRecord.getPunchTime().toLocalTime();
         LocalTime endDateTime = endWorkRecord.getPunchTime().toLocalTime();
 
-        // 打卡班次为常规班次的时候，中间的11:30-12:00不算时间
+        // 打卡班次为常规班次的时候，中间的11:30-13:00不算时间
 
         if (startDateTime.isBefore(workShift.getStartTime())) {
             startDateTime = workShift.getStartTime();

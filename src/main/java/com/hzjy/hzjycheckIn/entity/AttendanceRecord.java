@@ -74,8 +74,14 @@ public class AttendanceRecord implements Serializable {
      */
     private String updateBy;
 
+    /**
+     * 班次ID
+     */
     private Integer workShiftId;
 
+    /**
+     * 打卡日期
+     */
     private LocalDate punchDate;
 
 }

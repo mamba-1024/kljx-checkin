@@ -34,4 +34,30 @@ public class BackendAttendanceRecordVO {
 
     private Integer workShiftId;
 
+    @ApiModelProperty("班次名称")
+    private String shiftName;
+
+    @ApiModelProperty("上午上班时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime amStartTime;
+
+    @ApiModelProperty("上午下班时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime amEndTime;
+
+    @ApiModelProperty("下午上班时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime pmStartTime;
+
+    @ApiModelProperty("下午下班时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime pmEndTime;
+
+    public BackendAttendanceRecordVO(LocalDateTime punchUpTime, LocalDateTime punchDownTime, BigDecimal hours, Integer workShiftId) {
+        this.punchUpTime = punchUpTime;
+        this.punchDownTime = punchDownTime;
+        this.hours = hours;
+        this.workShiftId = workShiftId;
+    }
+
 }

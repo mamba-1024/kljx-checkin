@@ -1,3 +1,10 @@
+-- EmployeeAttendance 增加四个打卡时间字段
+ALTER TABLE `employee_attendance`
+    ADD COLUMN `am_start_time` datetime NULL COMMENT '上午上班打卡时间',
+    ADD COLUMN `am_end_time` datetime NULL COMMENT '上午下班打卡时间',
+    ADD COLUMN `pm_start_time` datetime NULL COMMENT '下午上班打卡时间',
+    ADD COLUMN `pm_end_time` datetime NULL COMMENT '下午下班打卡时间';
+
 # ************************************************************
 # Sequel Ace SQL dump
 # 版本号： 20035
