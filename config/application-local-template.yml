@@ -1,0 +1,44 @@
+spring:
+  datasource:
+    driver-class-name: 
+    url: 
+    # 敏感信息已移至 config/application-local.yml
+    username: 
+    password: 
+
+
+server:
+  port: 8088
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+logging:
+  level:
+    root: info
+## 微信小程序配置
+wx:
+  appSecret: 
+  appId: 
+
+## 远程文件存储配置
+remote:
+  file:
+    ssh:
+      host: 
+      port: 22
+      username: 
+      # password: YOUR_SSH_PASSWORD  # 使用SSH密钥，不需要密码
+      privateKeyPath:   # JSch兼容的SSH私钥路径
+    upload:
+      path: 
+    access:
+      url: 
+
+##阿里云配置（已弃用，改用本地存储）
+oss:
+  endpoint: hjhjhjhjhj
+  accessKeyId: hjhjhjhjhj
+  accessKeySecret: hjhjhjhjhj
+  bucketName: hjhjhjhjhj

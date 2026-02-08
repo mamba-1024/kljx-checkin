@@ -46,10 +46,11 @@ Thumbs.db
 # 包含敏感信息的配置文件
 config/application-local.yml
 config/application-secret.yml
+config/application-prod.yml
+config/application-dev.yml
 src/main/resources/application-local.yml
 src/main/resources/application-secret.yml
 # 本地配置文件目录
-config/
 
 # SSH密钥文件
 *.pem

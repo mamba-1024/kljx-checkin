@@ -251,9 +251,6 @@ public class AttendanceController {
                         employeeAttendance.setPmPunchDuration(BigDecimalGetHoursUtil.minutesToHours(pmDuration.toMinutes()));
                         // commonPunchDuration = amPunchDuration + pmPunchDuration
                         employeeAttendance.setCommonPunchDuration(employeeAttendance.getAmPunchDuration().add(employeeAttendance.getPmPunchDuration()));
-                        Duration amDuration = DurationUtil.getDuration(amStartTime.toLocalTime(), pmEndTimeNow.toLocalTime(), workShift);
-                        employeeAttendance.setAmPunchDuration(BigDecimalGetHoursUtil.minutesToHours(amDuration.toMinutes()));
-                        employeeAttendance.setCommonPunchDuration(employeeAttendance.getAmPunchDuration().add(employeeAttendance.getPmPunchDuration()));
                     } else {
                         return Result.fail("对不起，当前班次已经打过下班卡了");
                     }
