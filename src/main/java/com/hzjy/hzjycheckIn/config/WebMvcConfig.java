@@ -50,7 +50,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 "/employee/login/login", "/employee/login/register", "/employee/login/loginByName",
                 "/", "/index.html", "/error", "/favicon.ico", "/robots.txt", "/sitemap.xml"
         );
-        
         // 添加JWT拦截器，拦截所有请求
         registry.addInterceptor(backendContextInterceptor).addPathPatterns("/**").excludePathPatterns(excludeWechatSwaggerPath);
         registry.addInterceptor(userContextInterceptor).addPathPatterns("/**").excludePathPatterns(excludeBackendSwaggerPath);
